@@ -68,7 +68,7 @@
         (.write w (str (.time ^PartialFlake @f))))
 
       ;; sleep for a second before writing the next timestamp
-      (Thread/sleep 1e4))))
+      (Thread/sleep 1e3))))
 
 (defn read-timestamp
   "Reads a timestamp from path. If the path is not a file, returns 0."
