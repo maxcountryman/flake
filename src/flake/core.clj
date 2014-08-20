@@ -28,7 +28,7 @@
     => (take 10 (repeatedly flake/generate))
     (25981799066832176213716719468544N ...)
 
-  Calling `generate` will yeild a BigInteger of 128 bits. Because these numbers
+  Calling `generate` will yield a BigInteger of 128 bits. Because these numbers
   are long, it may be desirable to encode them in a shorter representation. To
   facilitate this, `flake.utils` provides a base62 encoder.
 
