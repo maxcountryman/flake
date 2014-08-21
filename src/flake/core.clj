@@ -63,12 +63,13 @@
   "Writes time contained by the PartialFlake f to path in a separate thread."
   [f path]
   (future
-    (while true
+    (loop [next-update (+ 1e3 (utils/now))]
       (with-open [w (io/writer path)]
         (.write w (str (.time ^PartialFlake @f))))
 
-      ;; sleep for a second before writing the next timestamp
-      (Thread/sleep 1e3))))
+      ;; Sleep for the difference between 1000ms and time spent
+      (Thread/sleep (- next-update (utils/now)))
+      (recur (+ 1e3 next-update)))))
 
 (defn read-timestamp
   "Reads a timestamp from path. If the path is not a file, returns 0."
