@@ -42,3 +42,7 @@ Base62. The utils namespace provides an encoder:
 => (utils/base62-encode (flake/generate))
 "8mwFA958SJ2CZVu9nk"
 ```
+
+## Exceptional cases
+
+When generating flakes, if system time [flows backwards](http://aphyr.com/posts/299-the-trouble-with-timestamps) then an `IllegalStateException` will be thrown. In the extremely unlikely event that you generate more than 65,535 flakes on one machine in a millisecond (65 million flakes/second) then an `IllegalArgumentException` will be thrown as the flake sequence id (of type short) overflows.
