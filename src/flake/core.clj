@@ -114,20 +114,19 @@
 
 ;; Initializer
 (defn init!
-  "Ensures persistent-ts-path contains a timestamp that is less than the
-  current Unix time in milliseconds. This should be called before generating
-  new IDs!"
-  [& [persistent-ts-path]]
-  (let [path (or persistent-ts-path
-                 "/tmp/flake-timestamp-dets")]
+  "Ensures path contains a timestamp that is less than the current Unix time in
+  milliseconds. This should be called before generating new IDs!"
+  ([]
+   (init! "/tmp/flake-timestamp-dets"))
+  ([path]
+   ;; Ensure the current time is greater than the last recorded time to
+   ;; prevent duplicate IDs from being generated.
+   (assert (> (utils/now)
+              (read-timestamp path))
+           "persisted time is in the future.")
 
-    ;; Ensure the current time is greater than the last recorded time to
-    ;; prevent duplicate IDs from being generated.
-    (assert (> (utils/now) (read-timestamp path))
-            "persisted time is in the future.")
-
-    ;; Write out the last timestamp in a separate thread
-    (write-timestamp path partial-flake)))
+   ;; Write out the last timestamp in a separate thread
+   (write-timestamp path partial-flake)))
 
 ;; Generator
 (defn generate
