@@ -61,7 +61,7 @@
 ;; Persistent timer
 (defn write-timestamp
   "Writes time contained by the PartialFlake f to path in a separate thread."
-  [f path]
+  [path f]
   (future
     (loop [next-update (+ 1e3 (utils/now))]
       (with-open [w (io/writer path)]
