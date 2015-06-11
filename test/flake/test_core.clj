@@ -37,8 +37,8 @@
                  (take 1e6))]
 
     ;; IDs are lexicographically ordered and unique
-    (is (= ids (sort ids))
-        (= ids (distinct ids)))))
+    (is (= ids (sort ids)))
+    (is (= ids (distinct ids)))))
 
 (deftest ^:benchmark test-performance
   (quick-bench (flake/generate)))
