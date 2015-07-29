@@ -8,7 +8,7 @@ This is a Clojure implementation of Boundary's [Erlang Flake ID service](https:/
 `flake` is available via [Clojars](https://clojars.org/flake):
 
 ```clojure
-[flake "0.3.0"]
+[flake "0.3.1"]
 ```
 
 ## Usage
