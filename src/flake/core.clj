@@ -54,9 +54,18 @@
 ;; TODO: Should throw an error if no network interface found.
 (defonce ^{:private true}
   hardware-address
-  (-> (InetAddress/getLocalHost)
-      NetworkInterface/getByInetAddress
-      .getHardwareAddress))
+  (try
+    (-> (InetAddress/getLocalHost)
+        NetworkInterface/getByInetAddress
+        .getHardwareAddress)
+    (catch java.net.UnknownHostException _
+      (binding [*out* *err*]
+        (println "[flake.core]"
+                 "No local host address found."
+                 "Falling back to SecureRandom."))
+      (let [bytes (byte-array 6)]
+        (.nextBytes (java.security.SecureRandom.) bytes)
+        bytes))))
 
 ;; Persistent timer
 (defn write-timestamp
