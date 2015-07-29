@@ -59,6 +59,10 @@
         NetworkInterface/getByInetAddress
         .getHardwareAddress)
     (catch java.net.UnknownHostException _
+      (binding [*out* *err*]
+        (println "[flake.core]"
+                 "No local host address found."
+                 "Falling back to SecureRandom."))
       (let [bytes (byte-array 6)]
         (.nextBytes (java.security.SecureRandom.) bytes)
         bytes))))
