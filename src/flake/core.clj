@@ -145,3 +145,7 @@
         seq-no (next-seq-no! ts)
         flake  (flake-byte-buffer ts hardware-address seq-no)]
     (bigint (.array flake))))
+
+(def ^{:doc "Like generate but returns an infinite, lazy sequence of IDs."}
+  lazy-gen
+  (repeatedly generate))
