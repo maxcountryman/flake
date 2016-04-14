@@ -51,21 +51,31 @@
   partial-flake
   (atom (PartialFlake. Long/MIN_VALUE Short/MIN_VALUE)))
 
+(defn- random-bytes
+  "Return `n` random bytes in an array."
+  [n]
+  (let [bytes (byte-array n)]
+    (.nextBytes (java.security.SecureRandom.) bytes)
+    bytes))
+
+(defn- print-fallback-warning []
+  "Print warning about using secure random fallback."
+  []
+  (binding [*out* *err*]
+    (println "[flake.core]"
+             "No local host address found."
+             "Falling back to SecureRandom.")))
+
 ;; TODO: Should throw an error if no network interface found.
 (defonce ^{:private true}
   hardware-address
   (try
-    (-> (InetAddress/getLocalHost)
-        NetworkInterface/getByInetAddress
-        .getHardwareAddress)
-    (catch java.net.UnknownHostException _
-      (binding [*out* *err*]
-        (println "[flake.core]"
-                 "No local host address found."
-                 "Falling back to SecureRandom."))
-      (let [bytes (byte-array 6)]
-        (.nextBytes (java.security.SecureRandom.) bytes)
-        bytes))))
+    (or (try (-> (InetAddress/getLocalHost)
+                 NetworkInterface/getByInetAddress
+                 .getHardwareAddress)
+             (catch java.net.UnknownHostException _))
+        (do (print-fallback-warning)
+            (random-bytes 6)))))
 
 ;; Persistent timer
 (defn write-timestamp
