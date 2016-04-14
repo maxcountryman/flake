@@ -1,6 +1,7 @@
 (ns flake.utils
   (:require [clojure.java.io :as io])
-  (:import [java.nio ByteBuffer]))
+  (:import [java.nio ByteBuffer]
+           [java.security SecureRandom]))
 
 (def ^{:const true :private true}
   base62-alphabet
@@ -36,3 +37,16 @@
   "Returns true if path is a file, otherwise false."
   [path]
   (.exists (io/as-file path)))
+
+(defn rand-bytes
+  "Return `n` random bytes in an array."
+  [n]
+  (let [bs (byte-array n)]
+    (.nextBytes (SecureRandom.) bs)
+    bs))
+
+(defn print-stderr
+  "Prints an `error` to stderr."
+  [& error]
+  (binding [*out* *err*]
+    (apply println error)))

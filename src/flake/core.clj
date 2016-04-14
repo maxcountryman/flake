@@ -51,28 +51,16 @@
   partial-flake
   (atom (PartialFlake. Long/MIN_VALUE Short/MIN_VALUE)))
 
-(defn- random-bytes
-  "Return `n` random bytes in an array."
-  [n]
-  (let [bytes (byte-array n)]
-    (.nextBytes (java.security.SecureRandom.) bytes)
-    bytes))
-
-(defn- print-std-err
-  [& error]
-  (binding [*out* *err*]
-    (apply println error)))
-
 (defonce ^{:private true}
   hardware-address
   (or (try (-> (InetAddress/getLocalHost)
                NetworkInterface/getByInetAddress
                .getHardwareAddress)
            (catch java.net.UnknownHostException _))
-      (do (print-std-err "[flake.core]"
-                         "No local host address found."
-                         "Falling back to SecureRandom.")
-          (random-bytes 6))))
+      (do (utils/print-stderr "[flake.core]"
+                              "No local host address found."
+                              "Falling back to SecureRandom.")
+          (utils/rand-bytes 6))))
 
 ;; Persistent timer
 (defn write-timestamp
