@@ -58,13 +58,10 @@
     (.nextBytes (java.security.SecureRandom.) bytes)
     bytes))
 
-(defn- print-fallback-warning
-  "Print warning about using secure random fallback."
-  []
+(defn- print-std-err
+  [& error]
   (binding [*out* *err*]
-    (println "[flake.core]"
-             "No local host address found."
-             "Falling back to SecureRandom.")))
+    (apply println error)))
 
 ;; TODO: Should throw an error if no network interface found.
 (defonce ^{:private true}
@@ -74,7 +71,9 @@
                  NetworkInterface/getByInetAddress
                  .getHardwareAddress)
              (catch java.net.UnknownHostException _))
-        (do (print-fallback-warning)
+        (do (print-std-err "[flake.core]"
+                           "No local host address found."
+                           "Falling back to SecureRandom.")
             (random-bytes 6)))))
 
 ;; Persistent timer
