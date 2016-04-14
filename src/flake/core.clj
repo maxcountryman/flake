@@ -58,7 +58,7 @@
     (.nextBytes (java.security.SecureRandom.) bytes)
     bytes))
 
-(defn- print-fallback-warning []
+(defn- print-fallback-warning
   "Print warning about using secure random fallback."
   []
   (binding [*out* *err*]
