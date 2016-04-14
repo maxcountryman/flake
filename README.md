@@ -1,4 +1,6 @@
 # Flake
+[![Clojars Project](https://img.shields.io/clojars/v/flake.svg)](https://clojars.org/flake)
+[![Dependencies Status](https://jarkeeper.com/maxcountryman/flake/status.svg)](https://jarkeeper.com/maxcountryman/flake)
 
 Decentralized, k-ordered unique ID generator.
 
