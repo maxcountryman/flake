@@ -40,8 +40,7 @@
   "
   (:require [clojure.java.io :as io]
             [flake.utils     :as utils]
-            [primitive-math  :as p])
-  (:import [java.net InetAddress NetworkInterface]))
+            [primitive-math  :as p]))
 
 ;; n.b. this allows us to atomically set time whilst potentially.
 ;; incrementing sequence
@@ -53,12 +52,9 @@
 
 (defonce ^{:private true}
   hardware-address
-  (or (try (-> (InetAddress/getLocalHost)
-               NetworkInterface/getByInetAddress
-               .getHardwareAddress)
-           (catch java.net.UnknownHostException _))
+  (or (first (utils/get-hardware-addresses))
       (do (utils/print-stderr "[flake.core]"
-                              "No local host address found."
+                              "No hardware address found."
                               "Falling back to SecureRandom.")
           (utils/rand-bytes 6))))
 

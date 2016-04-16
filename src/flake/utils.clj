@@ -1,6 +1,7 @@
 (ns flake.utils
   (:require [clojure.java.io :as io])
-  (:import [java.nio ByteBuffer]
+  (:import [java.net NetworkInterface]
+           [java.nio ByteBuffer]
            [java.security SecureRandom]))
 
 (def ^{:const true :private true}
@@ -50,3 +51,14 @@
   [& error]
   (binding [*out* *err*]
     (apply println error)))
+
+(defn get-hardware-addresses
+  "Returns a sequence of hardware addresses (generally MACs) formatted as byte
+  arrays which have been filtered such that they do not contain nil or
+  `0.0.0.0.0.0`."
+  []
+  (->> (NetworkInterface/getNetworkInterfaces)
+       enumeration-seq
+       (map #(.getHardwareAddress %))
+       (filter identity)
+       (remove #(every? zero? %))))
