@@ -12,8 +12,8 @@ This is a Clojure implementation of Boundary's [Erlang Flake ID service](https:/
 New flake IDs can be generated with the `generate` fn from flake's core
 namespace.
 
-Note that in order to prevent generation of duplicate IDs, *`init!` must be
-called prior to generating IDs for the first time* to prevent potential
+Note that in order to prevent generation of duplicate IDs, **`init!` must be
+called prior to generating IDs for the first time** to prevent potential
 duplicate IDs.
 
 For example:
