@@ -35,7 +35,7 @@ Base62. The utils namespace provides an encoder:
 
 ```clojure
 => (require '[flake.utils :as utils])
-=> (utils/base62-encode (repeatedly flake/generate))
+=> (utils/base62-encode (first (repeatedly flake/generate)))
 "8mwFA958SJ2CZVu9nk"
 ```
 
