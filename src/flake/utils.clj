@@ -59,6 +59,6 @@
   []
   (->> (NetworkInterface/getNetworkInterfaces)
        enumeration-seq
-       (map #(.getHardwareAddress %))
+       (map (fn [^NetworkInterface ni] (.getHardwareAddress ni)))
        (filter identity)
        (remove #(every? zero? %))))
