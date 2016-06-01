@@ -11,7 +11,7 @@ devices and picking the first seemingly valid hardware address.
 devices.
 
 ## [0.3.1] - 2015-06-29
-### Changed
+### Added
 - Support for creating the worker ID portion of IDs via `SecureRandom` when
 no hardware interfaces can be found.
 
