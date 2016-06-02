@@ -9,19 +9,18 @@ This is a Clojure implementation of Boundary's [Erlang Flake ID service](https:/
 
 ## Usage
 
-New flake IDs can be generated with the `generate` fn from flake's core
+New flake IDs can be generated with the `generate!` fn from flake's core
 namespace.
 
 Note that in order to prevent generation of duplicate IDs, **`init!` must be
-called prior to generating IDs for the first time** to prevent potential
-duplicate IDs.
+called prior to generating IDs for the first time**.
 
 For example:
 
 ```clojure
 => (require '[flake.core :as flake])
 => (flake/init!)
-=> (take 3 (repeatedly flake/generate))
+=> (map flake/flake->bigint (take 3 (repeatedly flake/generate!)))
 (25978563106299135585558915252224N
  25978563106299135585558915252225N
  25978563106299135585558915252226N)
@@ -35,9 +34,33 @@ Base62. The utils namespace provides an encoder:
 
 ```clojure
 => (require '[flake.utils :as utils])
-=> (utils/base62-encode (first (repeatedly flake/generate)))
+=> (->> (repeatedly flake/generate!)
+        first
+        flake/flake->bigint
+        utils/base62-encode)
 "8mwFA958SJ2CZVu9nk"
 ```
+
+A flake's middle-most bits are derived from a hardware address, e.g. MAC. If
+this is not desirable or the caller wishes to have more granular control over
+which bits are used here, a custom `worker-id` may be provided:
+
+```clojure
+(import '[java.security SecureRandom])
+
+(defn rand-bytes
+  "Return `n` random bytes in an array."
+  [n]
+  (let [bs (byte-array n)]
+    (.nextBytes (SecureRandom.) bs)
+    bs))
+
+(def worker-id (rand-bytes 6))
+
+(first (repeatedly (partial flake/generate! worker-id)))
+```
+
+The above specifies a random array of bytes to be used as the worker-id.
 
 # Specification
 
@@ -51,10 +74,6 @@ A diagram of the flake byte structure:
 
     [timestamp:64][MAC:48][sequence:16]
 
-Note that if a MAC is unavailable, a random byte array will be generated.
-Because this byte array will vary between program invocations, this may break
-lexicographic ordering.
-
 # Exceptions
 
 Exceptions may occur if a single machine generates more than 65,535 flakes
@@ -64,4 +83,4 @@ at ~65 million flakes per second. If this limit is reached a
 
 Additionally flake makes an effort to detect drift in system time and will
 raise `IllegalStateException` if time appears to be flowing in the wrong
-direction.
+direction. Note that `init!` must be used for this to work properly!

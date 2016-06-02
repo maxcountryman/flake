@@ -1,9 +1,16 @@
 # Flake
 
 ## [Unreleased]
-### Changed
+### Added
 - Better hardware address discovery. Far more robust, filtering out `null`
 devices and picking the first seemingly valid hardware address.
+
+### Changed
+- Removed random worker ID assignment, when no hardware address was found.
+- BREAKING: `generate` is now `generate!` in addition, other functions removed.
+- BREAKING: `generate!` now returns a ByteBuffer--use `flake->bigint` to
+    maintain backwards compatibility.
+- BREAKING: Persistent timer moved to its own namespace, `flake.timer`.
 
 ## [0.3.2] - 2015-06-29
 ### Changed

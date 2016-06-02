@@ -4,19 +4,20 @@
   This is a port of Boundary's eponymous Erlang unique ID service. The format
   of the IDs is as follows:
 
-    64 bits - timestamp
-    48 bits - id (i.e. MAC address)
-    16 bits - sequence
+    64 bits - ts (i.e. Unix timestamp)
+    48 bits - worker-id (i.e. MAC address)
+    16 bits - seq-no (i.e. a counter)
 
-  Timestamp is the current Unix time with millisecond resolution, id is the MAC
-  address of the machine, and sequence is a sequence of numbers usually
+  ts is the current Unix time with millisecond resolution, worker-id is the MAC
+  address of the machine, and seq-no is a sequence of numbers usually
   initialized to the minimum value.
 
   Whenever an ID is requested within the same millisecond as a previous ID,
-  sequence is incremented otherwise it's reset to its minimum value. So this
-  allows for 2^16-1 unique IDs per millisecond per machine.
+  seq-no is incremented otherwise it is reset to its minimum value. Since
+  seq-no is a short this allows for 2^16-1 unique IDs per millisecond per
+  machine.
 
-  New IDs may be generated with the `generate` function, however before doing
+  New IDs may be generated with the `generate!` function, however before doing
   so, `init!` should be executed. Using `init!` helps to ensure that duplicate
   IDs are not generated on a given machine by checking that the current Unix
   time exceeds the last timestamp written to disk.
@@ -25,114 +26,83 @@
 
     => (require '[flake.core :as flake])
     => (flake/init!)
-    => (take 10 (repeatedly flake/generate))
+    => (flake/flake->bigint (take 10 (repeatedly flake/generate!)))
     (25981799066832176213716719468544N ...)
 
-  Calling `generate` will yield a BigInteger of 128 bits. Because these numbers
-  are long, it may be desirable to encode them in a shorter representation. To
+  Calling `generate!` will yield a ByteBuffer of 128 bits. This in turn can
+  be converted to a BigInteger via `flake->bigint`. Because these numbers are
+  long, it may be desirable to encode them in a shorter representation. To
   facilitate this, `flake.utils` provides a base62 encoder.
 
   For example:
 
     => (require '[flake.utils :as utils])
-    => (map utils/base62-encode (take 3 (repeatedly flake/generate)))
-    (\"8n0RhygzZ84kHHLw1I\" \"8n0RhygzZ84kHHLw1J\" \"8n0RhyhLXoMKINWDZY\")
-  "
-  (:require [clojure.java.io :as io]
+    => (->> (repeatedly flake/generate!)
+            (take 3)
+            flake/flake->bigint
+            utils/base62-encode)
+    (\"8n0RhygzZ84kHHLw1I\" \"8n0RhygzZ84kHHLw1J\" \"8n0RhyhLXoMKINWDZY\")"
+  (:require [flake.timer     :as timer]
             [flake.utils     :as utils]
-            [primitive-math  :as p]))
+            [primitive-math  :as p])
+  (:import [java.nio ByteBuffer]))
 
-;; n.b. this allows us to atomically set time whilst potentially.
-;; incrementing sequence
-(deftype PartialFlake [^long time ^short sequence])
 
-(defonce ^{:private true}
-  partial-flake
-  (atom (PartialFlake. Long/MIN_VALUE Short/MIN_VALUE)))
+;; Simple container for all the bits necessary to assemble a flake ID.
+;;
+(deftype Flake [^long ts ^bytes worker-id ^short seq-no])
 
 (defonce ^{:private true}
-  hardware-address
-  (or (first (utils/get-hardware-addresses))
-      (do (utils/print-stderr "[flake.core]"
-                              "No hardware address found."
-                              "Falling back to SecureRandom.")
-          (utils/rand-bytes 6))))
+  default-worker-id (first (utils/get-hardware-addresses)))
 
-;; Persistent timer
-(defn write-timestamp
-  "Writes time contained by the PartialFlake f to path in a separate thread."
-  [path f]
-  (future
-    (loop [next-update (+ 1e3 (utils/now))]
-      (with-open [w (io/writer path)]
-        (.write w (str (.time ^PartialFlake @f))))
+(defonce ^{:private true}
+  flake (atom (Flake. Long/MIN_VALUE default-worker-id Short/MIN_VALUE)))
 
-      ;; Sleep for the difference between 1000ms and time spent
-      (Thread/sleep (- next-update (utils/now)))
-      (recur (+ 1e3 next-update)))))
 
-(defn read-timestamp
-  "Reads a timestamp from path. If the path is not a file, returns 0."
-  [path]
-  (or (when (utils/file-exists? path)
-        (read-string (slurp path)))
-      0))
-
-(defn evolve-flake
-  "Evolves f relative to ts. If ts is greater than f's time, returns a new
-  PartialFlake with time set to ts and sequence reset. If ts is equal to f's
-  time, returns a new PartialFlake with time set to ts and sequence
-  incremented. Otherwise time is flowing in the wrong direction and an
-  IllegalStateExceptiion is thrown."
-  [ts ^PartialFlake f]
+;; Generator.
+;;
+(defn generate-flake!
+  "Given an atom containing a Flake, a timestamp, and a worker ID, returns
+  a Flake where the sequence has either been incremented or reset."
+  [f ts worker-id]
   (cond
-    ;; clock hasn't moved, increment sequence
-    (= ts (.time f)) (PartialFlake. ts (p/inc (.sequence f)))
+    (= ts (.ts ^Flake @f))
+    (swap! f (fn update-flake [s]
+               (Flake. ts worker-id (p/inc (.seq-no ^Flake s)))))
 
-    ;; clock has progressed, reset sequence
-    (> ts (.time f)) (PartialFlake. ts Short/MIN_VALUE)
+    (> ts (.ts ^Flake @f))
+    (swap! f (fn update-flake [_]
+               (Flake. ts worker-id Short/MIN_VALUE)))
 
-    ;; illegal state, time is flowing the wrong way
-    :else (throw
-            (IllegalStateException. "time cannot flow backwards."))))
+    :else (throw (IllegalStateException. "time cannot flow backwards."))))
 
-(defn next-seq-no!
-  "Returns the next sequence number relative to ts."
-  [ts]
-  (.sequence
-    ^PartialFlake (swap! partial-flake (partial evolve-flake ts))))
+(defn generate!
+  "Generate a new ByteBuffer from a Flake. An optional worker-id can be
+  provided, otherwise the default uses a valid hardware interface. Returns the
+  ByteBuffer which contains a fully formed Flake."
+  ([]
+   (generate! default-worker-id))
+  ([worker-id]
+   (let [^Flake f (generate-flake! flake (utils/now) worker-id)]
+     (doto (utils/byte-buffer 16)
+           (.putLong (.ts f))
+           (.put ^bytes (.worker-id f))
+           (.putShort (.seq-no f))))))
 
-(defn flake-byte-buffer
-  ^{:tag java.nio.ByteBuffer
-    :doc "Generates a ByteBuffer of 16 bytes where the first 64 bits contain ts
-         the next 48 id and the last 16 seq-no."}
-  [ts ^bytes id seq-no]
-  (doto (utils/byte-buffer 16)
-        (.putLong ts)
-        (.put id)
-        (.putShort seq-no)))
+(defn flake->bigint
+  "Converts a ByteBuffer containing a Flake to a BigInteger."
+  [^ByteBuffer f]
+  (bigint (.array f)))
 
-;; Initializer
+
+;; Initializer.
+;;
 (defn init!
   "Ensures path contains a timestamp that is less than the current Unix time in
   milliseconds. This should be called before generating new IDs!"
   ([]
    (init! "/tmp/flake-timestamp-dets"))
   ([path]
-   ;; Ensure the current time is greater than the last recorded time to
-   ;; prevent duplicate IDs from being generated.
-   (assert (> (utils/now)
-              (read-timestamp path))
+   (assert (> (utils/now) (timer/read-timestamp path))
            "persisted time is in the future.")
-
-   ;; Write out the last timestamp in a separate thread
-   (write-timestamp path partial-flake)))
-
-;; Generator
-(defn generate
-  "Generates a unique, k-ordered ID. Returns a BigInteger of 128 bits."
-  []
-  (let [ts     (utils/now)
-        seq-no (next-seq-no! ts)
-        flake  (flake-byte-buffer ts hardware-address seq-no)]
-    (bigint (.array flake))))
+   (timer/write-timestamp path flake)))

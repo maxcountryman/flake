@@ -1,8 +1,6 @@
 (ns flake.utils
-  (:require [clojure.java.io :as io])
   (:import [java.net NetworkInterface]
-           [java.nio ByteBuffer]
-           [java.security SecureRandom]))
+           [java.nio ByteBuffer]))
 
 (def ^{:const true :private true}
   base62-alphabet
@@ -33,24 +31,6 @@
   "Returns the current Unix time in milliseconds."
   []
   (System/currentTimeMillis))
-
-(defn file-exists?
-  "Returns true if path is a file, otherwise false."
-  [path]
-  (.exists (io/as-file path)))
-
-(defn rand-bytes
-  "Return `n` random bytes in an array."
-  [n]
-  (let [bs (byte-array n)]
-    (.nextBytes (SecureRandom.) bs)
-    bs))
-
-(defn print-stderr
-  "Prints an `error` to stderr."
-  [& error]
-  (binding [*out* *err*]
-    (apply println error)))
 
 (defn get-hardware-addresses
   "Returns a sequence of hardware addresses (generally MACs) formatted as byte
