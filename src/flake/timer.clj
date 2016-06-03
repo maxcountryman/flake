@@ -21,4 +21,5 @@
   [path]
   (try
     (read-string (slurp path))
-    (catch java.lang.RuntimeException _ 0)))
+    (catch java.lang.RuntimeException _ 0)
+    (catch java.io.IOException _ 0)))
