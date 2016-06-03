@@ -23,7 +23,7 @@
 
 (defmacro try-times
   [n sleep-ms & body]
-  `(try-times* ~n ~sleep-ms (constantly ~@body)))
+  `(try-times* ~n ~sleep-ms (fn [] ~@body)))
 
 
 (deftest test-generate-flake!
@@ -52,8 +52,9 @@
                        "flake-test-timestamp-init" ".txt")
         writer (flake/init! test-ts-path)]
     (try
-      (try-times 3 2e3
-        (is (>= (read-string (slurp test-ts-path)) start)))
+      (try-times 3 0
+        (let [t (read-string (slurp test-ts-path))]
+          (is (>= t start))))
       (finally (future-cancel writer)))))
 
 (deftest test-bad-init!

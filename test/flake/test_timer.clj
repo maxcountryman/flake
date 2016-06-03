@@ -12,7 +12,7 @@
           flake-atom (atom (Flake. 1 0 0))
           writer (timer/write-timestamp test-ts-path flake-atom)]
       (try
-        (try-times 3 1e3
+        (try-times 3 0
           (is (= (read-string (slurp test-ts-path)) 1)))
         (finally (future-cancel writer))))))
 
