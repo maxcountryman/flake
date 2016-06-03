@@ -23,3 +23,7 @@
     (with-open [w (io/writer test-ts-path)]
       (.write w (str (.ts @flake-atom))))
     (is (= (timer/read-timestamp test-ts-path)) 1)))
+
+(deftest test-read-timestamp-not-a-path
+  (let [test-ts-path (gensym "not-a-path")]
+    (is (= (timer/read-timestamp test-ts-path) 0))))
