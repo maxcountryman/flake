@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [0.4.1] - 2016-06-03
+### Fixed
+- Catch java.io.IOException when reading the timer path--fixes an issue where
+    non-existant paths threw uncaught exceptions.
+
 ## [0.4.0] - 2016-06-02
 ### Added
 - Better hardware address discovery. Far more robust, filtering out `null`
@@ -14,7 +19,7 @@ devices and picking the first seemingly valid hardware address.
     maintain backwards compatibility.
 - BREAKING: Persistent timer moved to its own namespace, `flake.timer`.
 
-## [0.3.2] - 2015-06-29
+## [0.3.2] - 2016-04-14
 ### Changed
 - Better network interface fallback--this involves filtering out loopback
 devices.
@@ -37,7 +42,8 @@ no hardware interfaces can be found.
 ### Added
 - Published project.
 
-[Unreleased]: https://github.com/maxcountryman/flake/compare/0.4.0...HEAD
+[Unreleased]: https://github.com/maxcountryman/flake/compare/0.4.1...HEAD
+[0.4.1]: https://github.com/maxcountryman/flake/compare/0.4.0...0.4.1
 [0.4.0]: https://github.com/maxcountryman/flake/compare/0.3.2...0.4.0
 [0.3.2]: https://github.com/maxcountryman/flake/compare/0.3.1...0.3.2
 [0.3.1]: https://github.com/maxcountryman/flake/compare/0.3.0...0.3.1
