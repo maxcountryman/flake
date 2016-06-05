@@ -1,5 +1,5 @@
 (ns flake.test_core
-  (:require [clojure.test    :refer [deftest is]]
+  (:require [clojure.test    :refer [deftest is testing]]
             [criterium.core  :refer [quick-bench]]
             [flake.core      :as flake]
             [flake.utils     :as utils]
@@ -67,4 +67,20 @@
       (is (thrown? java.lang.AssertionError (flake/init! test-ts-path))))))
 
 (deftest ^:benchmark test-performance
-  (quick-bench (take 1e6 (repeatedly flake/generate!))))
+  (testing "Generation performance."
+    (quick-bench (take 1e6 (repeatedly flake/generate!)))))
+
+
+;; Simple comparison of Java's random UUIDs to Flakes.
+;;
+(deftest ^:benchmark test-comp-perf
+  (let [flakes (take 1e6 (map flake/flake->bigint (repeatedly flake/generate!)))
+        uuids (take 1e6 (repeatedly #(java.util.UUID/randomUUID)))]
+    (testing "Comparison of flakes and UUIDs."
+      (quick-bench (= (rand-nth flakes) (rand-nth flakes)))
+      (quick-bench (= (rand-nth uuids) (rand-nth uuids))))))
+
+(deftest ^:benchmark test-gen-perf
+  (testing "Generation of flakes and UUIDs."
+    (quick-bench (take 1e6 (repeatedly flake/generate!)))
+    (quick-bench (take 1e6 (repeatedly #(java.util.UUID/randomUUID))))))
