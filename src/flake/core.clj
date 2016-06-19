@@ -63,18 +63,21 @@
 ;;
 (defn generate-flake!
   "Given an atom containing a Flake, a timestamp, and a worker ID, returns
-  a Flake where the sequence has either been incremented or reset."
+  a Flake where the sequence has either been incremented or reset. An
+  IllegalStateException will be thrown if the provided timestamp appears to be
+  in the past--e.g. in multi-threaded contexts, where one thread has won a race
+  to alter the state of the Flake."
   [f ts worker-id]
-  (cond
-    (= ts (.ts ^Flake @f))
-    (swap! f (fn update-flake [s]
-               (Flake. ts worker-id (p/inc (.seq-no ^Flake s)))))
+  (swap! f
+    (fn update-flake [^Flake s]
+      (cond
+        (= ts (.ts s))
+        (Flake. ts worker-id (p/inc (.seq-no s)))
 
-    (> ts (.ts ^Flake @f))
-    (swap! f (fn update-flake [_]
-               (Flake. ts worker-id Short/MIN_VALUE)))
+        (> ts (.ts s))
+        (Flake. ts worker-id Short/MIN_VALUE)
 
-    :else (throw (IllegalStateException. "time cannot flow backwards."))))
+        :else (throw (IllegalStateException. "time cannot flow backwards."))))))
 
 (defn generate!
   "Generate a new ByteBuffer from a Flake. An optional worker-id can be
@@ -83,11 +86,17 @@
   ([]
    (generate! default-worker-id))
   ([worker-id]
-   (let [^Flake f (generate-flake! flake (utils/now) worker-id)]
-     (doto (utils/byte-buffer 16)
-           (.putLong (.ts f))
-           (.put ^bytes (.worker-id f))
-           (.putShort (.seq-no f))))))
+   (let [bs (try
+              (let [ts (utils/now)
+                    ^Flake f (generate-flake! flake ts worker-id)]
+                (doto (utils/byte-buffer 16)
+                  (.putLong (.ts f))
+                  (.put ^bytes (.worker-id f))
+                  (.putShort (.seq-no f))))
+              (catch IllegalStateException _ ::illegal-state))]
+     (if (= bs ::illegal-state)
+       (recur worker-id)
+       bs))))
 
 (defn flake->bigint
   "Converts a ByteBuffer containing a Flake to a BigInteger."

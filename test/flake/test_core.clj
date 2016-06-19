@@ -46,6 +46,13 @@
     (is (= ids (sort ids)))
     (is (= ids (distinct ids)))))
 
+(deftest test-multi-threaded-generate!
+  (let [t1 (future (doall (take 1e6 (repeatedly flake/generate!))))
+        t2 (future (doall (take 1e6 (repeatedly flake/generate!))))]
+    (try
+      (is (apply distinct? (map flake/flake->bigint (concat @t1 @t2))))
+      (finally (future-cancel t1) (future-cancel t2)))))
+
 (deftest test-init!
   (let [start (utils/now)
         test-ts-path (java.io.File/createTempFile
