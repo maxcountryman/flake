@@ -59,8 +59,11 @@
                        "flake-test-timestamp-init" ".txt")
         writer (flake/init! test-ts-path)]
     (try
-      (try-times 3 1000
-        (is (>= (read-string (slurp test-ts-path)) start)))
+      (loop [has-content? (boolean (.length test-ts-path))]
+        (if has-content?
+          (try-times 3 1000
+                     (is (>= (read-string (slurp test-ts-path)) start)))
+          (recur (boolean (.length test-ts-path)))))
       (finally (future-cancel writer)))))
 
 (deftest test-bad-init!
