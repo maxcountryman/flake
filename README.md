@@ -65,7 +65,7 @@ The above specifies a random array of bytes to be used as the worker-id.
 # Specification
 
 Flakes are byte sequences composed of 128 bits. These sequences are structured
-such that the first 64 bits are a timestamp, i.e. the UNIX time in
+such that the first 64 bits are a timestamp, i.e. the time since an epoch in
 milliseconds, the next 48 bits are a unique, machine-specific bitset, normally
 the MAC, and finally the remaining 16 bits are a monotonically increasing
 short.

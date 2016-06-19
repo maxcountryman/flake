@@ -1,6 +1,9 @@
 (ns flake.utils
+  (:require [primitive-math :as p])
   (:import [java.net NetworkInterface]
            [java.nio ByteBuffer]))
+
+(def ^{:const true} one-million 1000000)
 
 (def ^{:const true :private true}
   base62-alphabet
@@ -31,6 +34,31 @@
   "Returns the current Unix time in milliseconds."
   []
   (System/currentTimeMillis))
+
+;; Borrowed from Skuld--thanks, Kyle!
+(defn epoch
+  "Returns the delta between the Unix time in milliseconds and nanoTime."
+  []
+  (-> one-million
+      (* (now))
+      (- (System/nanoTime))))
+
+(defn epoch-mean
+  "Takes N samples of epoch and returns the mean."
+  [n]
+  (-> (->> (repeatedly epoch)
+           (map double)
+           (take n)
+           (reduce +))
+      (/ n)
+      long))
+
+(defn now-from-epoch
+  "Returns the estimated current time in milliseconds from epoch."
+  [^long epoch]
+  (-> epoch
+      (p/+ (System/nanoTime))
+      (p/div one-million)))
 
 (defn get-hardware-addresses
   "Returns a sequence of hardware addresses (generally MACs) formatted as byte

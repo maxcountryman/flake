@@ -64,7 +64,7 @@
       (finally (future-cancel writer)))))
 
 (deftest test-bad-init!
-  (with-redefs [flake.utils/now (constantly 0)]
+  (with-redefs [flake.core/default-epoch 0]
     (let [test-ts-path "/tmp/flake-test-timestamp"]
       ;; Write a time we know is in the future.
       (spit test-ts-path "1")

@@ -4,13 +4,13 @@
   This is a port of Boundary's eponymous Erlang unique ID service. The format
   of the IDs is as follows:
 
-    64 bits - ts (i.e. Unix timestamp)
+    64 bits - ts (i.e. a timestamp)
     48 bits - worker-id (i.e. MAC address)
     16 bits - seq-no (i.e. a counter)
 
-  ts is the current Unix time with millisecond resolution, worker-id is the MAC
-  address of the machine, and seq-no is a sequence of numbers usually
-  initialized to the minimum value.
+  ts is a timestamp derived from System/nanoTime with millisecond resolution,
+  worker-id is the MAC address of the machine, and seq-no is a sequence of
+  numbers usually initialized to the minimum value.
 
   Whenever an ID is requested within the same millisecond as a previous ID,
   seq-no is incremented otherwise it is reset to its minimum value. Since
@@ -19,8 +19,8 @@
 
   New IDs may be generated with the `generate!` function, however before doing
   so, `init!` should be executed. Using `init!` helps to ensure that duplicate
-  IDs are not generated on a given machine by checking that the current Unix
-  time exceeds the last timestamp written to disk.
+  IDs are not generated on a given machine by checking that the current
+  timestamp exceeds the last timestamp written to disk.
 
   For example:
 
@@ -51,6 +51,9 @@
 ;; Simple container for all the bits necessary to assemble a flake ID.
 ;;
 (deftype Flake [^long ts ^bytes worker-id ^short seq-no])
+
+(defonce ^{:private true}
+  default-epoch (utils/epoch-mean 10))
 
 (defonce ^{:private true}
   default-worker-id (first (utils/get-hardware-addresses)))
@@ -84,10 +87,12 @@
   provided, otherwise the default uses a valid hardware interface. Returns the
   ByteBuffer which contains a fully formed Flake."
   ([]
-   (generate! default-worker-id))
+   (generate! default-worker-id default-epoch))
   ([worker-id]
+   (generate! worker-id default-epoch))
+  ([worker-id epoch]
    (let [bs (try
-              (let [ts (utils/now)
+              (let [ts (utils/now-from-epoch epoch)
                     ^Flake f (generate-flake! flake ts worker-id)]
                 (doto (utils/byte-buffer 16)
                   (.putLong (.ts f))
@@ -95,7 +100,7 @@
                   (.putShort (.seq-no f))))
               (catch IllegalStateException _ ::illegal-state))]
      (if (= bs ::illegal-state)
-       (recur worker-id)
+       (recur worker-id epoch)
        bs))))
 
 (defn flake->bigint
@@ -110,8 +115,10 @@
   "Ensures path contains a timestamp that is less than the current Unix time in
   milliseconds. This should be called before generating new IDs!"
   ([]
-   (init! "/tmp/flake-timestamp-dets"))
+   (init! "/tmp/flake-timestamp-dets" default-epoch))
   ([path]
-   (assert (> (utils/now) (timer/read-timestamp path))
+   (init! path default-epoch))
+  ([path epoch]
+   (assert (> epoch (timer/read-timestamp path))
            "persisted time is in the future.")
    (timer/write-timestamp path flake)))
