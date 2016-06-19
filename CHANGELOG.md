@@ -1,6 +1,10 @@
 # Flake
 
 ## [Unreleased]
+### Fixed
+- A potential race condition existed where, if two threads called `generate!`
+    simultaneously, the fact that the timestamp comparison was done outside of
+    the swap update function could result in duplicate IDs.
 
 ## [0.4.1] - 2016-06-03
 ### Fixed
