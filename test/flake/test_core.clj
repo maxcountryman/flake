@@ -73,8 +73,9 @@
       (is (thrown? java.lang.AssertionError (flake/init! test-ts-path))))))
 
 (deftest ^:benchmark test-performance
+  (prn "perf test")
   (testing "Generation performance."
-    (quick-bench (take 1e6 (repeatedly flake/generate!)))))
+    (quick-bench (flake/generate!))))
 
 
 ;; Simple comparison of Java's random UUIDs to Flakes.
@@ -82,11 +83,13 @@
 (deftest ^:benchmark test-comp-perf
   (let [flakes (take 1e6 (map flake/flake->bigint (repeatedly flake/generate!)))
         uuids (take 1e6 (repeatedly #(java.util.UUID/randomUUID)))]
+    (prn "comparison")
     (testing "Comparison of flakes and UUIDs."
       (quick-bench (= (rand-nth flakes) (rand-nth flakes)))
       (quick-bench (= (rand-nth uuids) (rand-nth uuids))))))
 
 (deftest ^:benchmark test-gen-perf
+  (prn "generation")
   (testing "Generation of flakes and UUIDs."
-    (quick-bench (take 1e6 (repeatedly flake/generate!)))
-    (quick-bench (take 1e6 (repeatedly #(java.util.UUID/randomUUID))))))
+    (quick-bench (flake/generate!))
+    (quick-bench #(java.util.UUID/randomUUID))))
