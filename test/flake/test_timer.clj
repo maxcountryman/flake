@@ -1,7 +1,6 @@
 (ns flake.test_timer
   (:require [clojure.java.io :as io]
             [clojure.test    :refer [deftest is]]
-            [flake.test_core :refer [try-times]]
             [flake.timer     :as timer])
   (:import [flake.core Flake]))
 
@@ -12,8 +11,10 @@
           flake-atom (atom (Flake. 1 0 0))
           writer (timer/write-timestamp test-ts-path flake-atom)]
       (try
-        (try-times 3 1000
-          (is (= (read-string (slurp test-ts-path)) 1)))
+        (loop [ts-written? (> (.length test-ts-path) 0)]
+          (if ts-written?
+            (is (= (read-string (slurp test-ts-path)) 1))
+            (recur (> (.length test-ts-path) 0))))
         (finally (future-cancel writer))))))
 
 (deftest test-read-timestamp
