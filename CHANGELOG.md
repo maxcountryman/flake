@@ -1,6 +1,13 @@
 # Flake
 
 ## [Unreleased]
+### Changed
+- Replaced usage of `System/currentTimeMillis` with a custom epoch derived from
+    the difference between `System/currentTimeMillis` and `System/nanonTime`.
+    In order to protect against clock skew, a sampling of deltas between the
+    two is taken and the average is used as the epoch for yielding new
+    timestamps.
+
 ### Fixed
 - A potential race condition existed where, if two threads called `generate!`
     simultaneously, the fact that the timestamp comparison was done outside of
