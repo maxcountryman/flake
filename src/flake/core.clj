@@ -70,7 +70,7 @@
   IllegalStateException will be thrown if the provided timestamp appears to be
   in the past--e.g. in multi-threaded contexts, where one thread has won a race
   to alter the state of the Flake."
-  [f ts worker-id]
+  [f ^long ts worker-id]
   (swap! f
     (fn update-flake [^Flake s]
       (cond
