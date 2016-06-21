@@ -1,6 +1,8 @@
 # Flake
 
 ## [Unreleased]
+
+## [0.4.2] - 2016-06-21
 ### Changed
 - Replaced usage of `System/currentTimeMillis` with a custom epoch derived from
     the difference between `System/currentTimeMillis` and `System/nanonTime`.
@@ -56,7 +58,8 @@ no hardware interfaces can be found.
 ### Added
 - Published project.
 
-[Unreleased]: https://github.com/maxcountryman/flake/compare/0.4.1...HEAD
+[Unreleased]: https://github.com/maxcountryman/flake/compare/0.4.2...HEAD
+[0.4.2]: https://github.com/maxcountryman/flake/compare/0.4.1...0.4.2
 [0.4.1]: https://github.com/maxcountryman/flake/compare/0.4.0...0.4.1
 [0.4.0]: https://github.com/maxcountryman/flake/compare/0.3.2...0.4.0
 [0.3.2]: https://github.com/maxcountryman/flake/compare/0.3.1...0.3.2
