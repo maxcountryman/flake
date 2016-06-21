@@ -121,4 +121,4 @@
   ([path epoch]
    (assert (> epoch (timer/read-timestamp path))
            "persisted time is in the future.")
-   (timer/write-timestamp path flake)))
+   (timer/write-timestamp path flake epoch)))

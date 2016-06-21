@@ -1,15 +1,17 @@
 (ns flake.test_timer
   (:require [clojure.java.io :as io]
             [clojure.test    :refer [deftest is]]
-            [flake.timer     :as timer])
+            [flake.timer     :as timer]
+            [flake.utils     :as utils])
   (:import [flake.core Flake]))
 
 (deftest test-write-timestamp
-  (with-redefs [flake.utils/now (constantly 0)]
+  (with-redefs [utils/now-from-epoch (constantly 0)]
     (let [test-ts-path (java.io.File/createTempFile
                          "flake-test-timestamp-write" ".txt")
           flake-atom (atom (Flake. 1 0 0))
-          writer (timer/write-timestamp test-ts-path flake-atom)]
+          epoch 0
+          writer (timer/write-timestamp test-ts-path flake-atom epoch)]
       (try
         (loop [ts-written? (> (.length test-ts-path) 0)]
           (if ts-written?
@@ -22,7 +24,7 @@
                        "flake-test-timestamp-read" ".txt")
         flake-atom (atom (Flake. 1 0 0))]
     (with-open [w (io/writer test-ts-path)]
-      (.write w (str (.ts @flake-atom))))
+      (.write w (str (.ts ^Flake @flake-atom))))
     (is (= (timer/read-timestamp test-ts-path)) 1)))
 
 (deftest test-read-timestamp-not-a-path

@@ -54,10 +54,11 @@
       (finally (future-cancel t1) (future-cancel t2)))))
 
 (deftest test-init!
-  (let [start (utils/now)
+  (let [epoch (utils/epoch-mean 10)
+        start (utils/now-from-epoch epoch)
         test-ts-path (java.io.File/createTempFile
                        "flake-test-timestamp-init" ".txt")
-        writer (flake/init! test-ts-path)]
+        writer (flake/init! test-ts-path epoch)]
     (try
       (loop [ts-written? (> (.length test-ts-path) 0)]
         (if ts-written?

@@ -4,11 +4,11 @@
 
 (defn write-timestamp
   "Periodically writes the most recent timestamp to path."
-  [path f]
+  [path f epoch]
   (future
     (loop [next-update (+ 1e3 (utils/now))]
       (with-open [w (io/writer path)]
-        (let [now (utils/now)
+        (let [now (utils/now-from-epoch epoch)
               ts  (.ts @f)]
           (.write w (str (if (> ts now) ts now)))))
 
