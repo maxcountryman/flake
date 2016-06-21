@@ -7,6 +7,9 @@
     In order to protect against clock skew, a sampling of deltas between the
     two is taken and the average is used as the epoch for yielding new
     timestamps.
+- BREAKING: The persistent timer now uses the same epoch used to generate
+    timestamps. As a result the arity of `write-timestamp` was changed to
+    include the epoch as the final argument.
 
 ### Fixed
 - A potential race condition existed where, if two threads called `generate!`
