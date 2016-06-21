@@ -55,8 +55,8 @@
 
 (defn now-from-epoch
   "Returns the estimated current time in milliseconds from epoch."
-  [^long epoch]
-  (-> epoch
+  [e]
+  (-> ^long e
       (p/+ (System/nanoTime))
       (p/div one-million)))
 
