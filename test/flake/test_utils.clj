@@ -3,7 +3,7 @@
             [flake.utils  :as utils]))
 
 (deftest test-base62-encode
-  (is (= "1C" (utils/base62-encode 100))))
+  (is (= "1c" (utils/base62-encode 100))))
 
 (deftest test-now-from-epoch
   (let [epoch (utils/epoch-mean 10)]

@@ -6,26 +6,6 @@
             [primitive-math  :as p])
   (:import [flake.core Flake]))
 
-
-;; Test helper.
-;;
-(defn try-times*
-  [n sleep-ms thunk]
-  (loop [n n]
-    (if-let [ret (try
-                   [(thunk)]
-                   (catch Exception e
-                     (when (zero? n)
-                       (throw e))
-                     (Thread/sleep sleep-ms)))]
-      (ret 0)
-      (recur (dec n)))))
-
-(defmacro try-times
-  [n sleep-ms & body]
-  `(try-times* ~n ~sleep-ms (fn [] ~@body)))
-
-
 (deftest test-generate-flake!
   (let [f (atom (Flake. 0 0 Short/MIN_VALUE))]
     (let [ret (flake/generate-flake! f 0 0)]
@@ -43,6 +23,14 @@
                  (map flake/flake->bigint))]
 
     ;; IDs are lexicographically ordered and unique.
+    (is (= ids (sort ids)))
+    (is (= ids (distinct ids)))))
+
+(deftest test-base62-generate!
+  (let [ids (->> (repeatedly flake/generate!)
+                 (take 1e6)
+                 (map (comp utils/base62-encode flake/flake->bigint)))]
+
     (is (= ids (sort ids)))
     (is (= ids (distinct ids)))))
 

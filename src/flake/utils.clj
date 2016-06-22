@@ -7,7 +7,7 @@
 
 (def ^{:const true :private true}
   base62-alphabet
-  "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
 
 (defn encode
   "Encodes n in a new base of ks."
