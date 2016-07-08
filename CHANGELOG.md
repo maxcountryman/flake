@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.4.3] - 2016-07-08
+### Fixed
+- The ordering of the base 62 alphabet used to generate base 62 numbers was
+misasligned such that IDs produced using this function could sort improperly.
+This is now fixed.
+
 ## [0.4.2] - 2016-06-21
 ### Changed
 - Replaced usage of `System/currentTimeMillis` with a custom epoch derived from
@@ -58,7 +64,8 @@ no hardware interfaces can be found.
 ### Added
 - Published project.
 
-[Unreleased]: https://github.com/maxcountryman/flake/compare/0.4.2...HEAD
+[Unreleased]: https://github.com/maxcountryman/flake/compare/0.4.3...HEAD
+[0.4.3]: https://github.com/maxcountryman/flake/compare/0.4.2...0.4.3
 [0.4.2]: https://github.com/maxcountryman/flake/compare/0.4.1...0.4.2
 [0.4.1]: https://github.com/maxcountryman/flake/compare/0.4.0...0.4.1
 [0.4.0]: https://github.com/maxcountryman/flake/compare/0.3.2...0.4.0
