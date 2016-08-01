@@ -22,4 +22,5 @@
   (try
     (Integer/parseInt (slurp path))
     (catch java.lang.NumberFormatException _ 0)
+    (catch java.lang.IllegalArgumentException _ 0)
     (catch java.io.IOException _ 0)))
