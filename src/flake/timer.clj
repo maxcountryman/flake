@@ -17,9 +17,9 @@
       (recur (+ 1e3 next-update)))))
 
 (defn read-timestamp
-  "Reads a timestamp from path. If the path is not a file, returns 0."
+  "Reads a timestamp from path. If the path is not a file or the file is empty, returns 0."
   [path]
   (try
-    (read-string (slurp path))
-    (catch java.lang.RuntimeException _ 0)
+    (Integer/parseInt (slurp path))
+    (catch java.lang.NumberFormatException _ 0)
     (catch java.io.IOException _ 0)))

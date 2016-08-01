@@ -30,3 +30,9 @@
 (deftest test-read-timestamp-not-a-path
   (let [test-ts-path (gensym "not-a-path")]
     (is (= (timer/read-timestamp test-ts-path) 0))))
+
+
+(deftest test-read-empty-file
+  (let [test-ts-path (java.io.File/createTempFile
+                      "flake-test-timestamp-empty" ".txt")]
+    (is (= (timer/read-timestamp test-ts-path) 0))))
