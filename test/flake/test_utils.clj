@@ -11,3 +11,11 @@
       (Thread/sleep 1)
       (is (>= 1 (- (System/currentTimeMillis)
                    (utils/now-from-epoch epoch)))))))
+
+(deftest test-with-timeout
+  (let [start (utils/now)
+        timeout-ms 10]
+    (is (thrown? java.util.concurrent.TimeoutException
+                 (utils/with-timeout timeout-ms (while true))))
+    (is (>= (- (utils/now) start) timeout-ms))
+    (is (= (utils/with-timeout timeout-ms (identity :foo)) :foo))))

@@ -70,3 +70,14 @@
        (map (fn [^NetworkInterface ni] (.getHardwareAddress ni)))
        (filter identity)
        (remove #(every? zero? %))))
+
+(defmacro with-timeout
+  "Attempts to execute a given body in a future until the given timeout-ms has
+  elapsed. Returns the result or throws java.util.concurrent.TimeoutException."
+  [timeout-ms body]
+  `(let [fut# (future ~body)
+         ret# (deref fut# ~timeout-ms ::timed-out)]
+     (when (= ret# ::timed-out)
+       (future-cancel fut#)
+       (throw (java.util.concurrent.TimeoutException. "timed out")))
+     ret#))
