@@ -17,7 +17,8 @@
       (recur (+ 1e3 next-update)))))
 
 (defn read-timestamp
-  "Reads a timestamp from path. If the path is not a file or the file is empty, returns 0."
+  "Reads a timestamp from path. If the path is not a file or the file is
+  empty, returns 0."
   [path]
   (try
     (Integer/parseInt (slurp path))
