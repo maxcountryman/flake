@@ -1,4 +1,4 @@
-(defproject flake "0.4.3"
+(defproject flake "0.4.4"
   :description "Decentralized, k-ordered unique ID generator."
   :url "https://github.com/maxcountryman/flake"
   :license {:name "BSD 3-Clause license"
