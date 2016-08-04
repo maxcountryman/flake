@@ -1,6 +1,14 @@
 # Flake
 
 ## [Unreleased]
+### Changed
+- Replaced the use of `read-string` with Integer/parseInt in reading timestamps
+    from disk. This is generally safer, as `read-string` is essentially
+    `eval`.
+- Added a utility macro, `with-timestamp`, which can be used to contain flake
+    generation in a bounded time window. While unlikely, `generate!` could
+    repeatedly lose the race to generate a flake which could be undesirable--
+    wrapping `generate!` with `with-timeout` addresses this issue.
 
 ## [0.4.3] - 2016-07-08
 ### Fixed
