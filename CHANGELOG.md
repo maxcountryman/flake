@@ -1,14 +1,18 @@
 # Flake
 
 ## [Unreleased]
+
+## [0.4.4] - 2016-08-04
+### Added
+- A utility macro, `with-timestamp`, which can be used to contain flake
+    generation to a bounded time window. While unlikely, `generate!` could
+    repeatedly lose the race to generate a flake which could be undesirable--
+    wrapping `generate!` with `with-timeout` addresses this issue.
+
 ### Changed
 - Replaced the use of `read-string` with Integer/parseInt in reading timestamps
     from disk. This is generally safer, as `read-string` is essentially
     `eval`.
-- Added a utility macro, `with-timestamp`, which can be used to contain flake
-    generation in a bounded time window. While unlikely, `generate!` could
-    repeatedly lose the race to generate a flake which could be undesirable--
-    wrapping `generate!` with `with-timeout` addresses this issue.
 
 ## [0.4.3] - 2016-07-08
 ### Fixed
@@ -72,7 +76,8 @@ no hardware interfaces can be found.
 ### Added
 - Published project.
 
-[Unreleased]: https://github.com/maxcountryman/flake/compare/0.4.3...HEAD
+[Unreleased]: https://github.com/maxcountryman/flake/compare/0.4.4...HEAD
+[0.4.4]: https://github.com/maxcountryman/flake/compare/0.4.3...0.4.4
 [0.4.3]: https://github.com/maxcountryman/flake/compare/0.4.2...0.4.3
 [0.4.2]: https://github.com/maxcountryman/flake/compare/0.4.1...0.4.2
 [0.4.1]: https://github.com/maxcountryman/flake/compare/0.4.0...0.4.1
