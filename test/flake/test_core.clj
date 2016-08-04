@@ -34,6 +34,13 @@
     (is (= ids (sort ids)))
     (is (= ids (distinct ids)))))
 
+(deftest test-with-timeout-generate!
+  (let [ids (->> (repeatedly (utils/with-timeout 1 flake/generate!))
+                 (take 1e6)
+                 (map flake/flake->bigint))]
+    (is (= ids (sort ids)))
+    (is (= ids (distinct ids)))))
+
 (deftest test-multi-threaded-generate!
   (let [t1 (future (doall (take 1e6 (repeatedly flake/generate!))))
         t2 (future (doall (take 1e6 (repeatedly flake/generate!))))]
