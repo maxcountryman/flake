@@ -12,13 +12,14 @@
 (defn encode
   "Encodes n in a new base of ks."
   [ks n]
-  (let [base (count ks)]
-    (->> (iterate #(quot % base) n)
-         (take-while pos?)
-         (reduce (fn [acc n]
-                   (conj acc (nth ks (mod n base))))
-                 nil)
-         (apply str))))
+  (let [ks   (.toCharArray ^String ks)
+        base (alength ks)
+        sb   (StringBuffer.)]
+    (loop [n n]
+      (if (pos? n)
+        (do (.append sb (aget ks (mod n base)))
+            (recur (quot n base)))
+        (.toString (.reverse sb))))))
 
 (def ^{:doc "Encodes a given value into a base62 representation."}
   base62-encode
