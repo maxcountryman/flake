@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.4.5] - 2017-08-25
+### Changed
+- ~2x performance improvment of base-64 encoding.
+
 ## [0.4.4] - 2016-08-04
 ### Added
 - A utility macro, `with-timestamp`, which can be used to contain flake
